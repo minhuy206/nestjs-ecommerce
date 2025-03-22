@@ -18,5 +18,8 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "strictNullChecks": true
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
   }
 }
