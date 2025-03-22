@@ -1,7 +1,11 @@
 import fs from 'fs'
 import z from 'zod'
 import path from 'path'
+import { config } from 'dotenv'
 
+config({
+  path: '.env',
+})
 // Kiểm tra coi thử có file .env chưa
 if (!fs.existsSync(path.resolve('.env'))) {
   console.error('Không tìm thấy file .env')
@@ -15,6 +19,10 @@ const configSchema = z.object({
   REFRESH_TOKEN_SECRET: z.string(),
   ACCESS_TOKEN_EXPIRES_IN: z.string(),
   REFRESH_TOKEN_EXPIRES_IN: z.string(),
+  ADMIN_NAME: z.string(),
+  ADMIN_EMAIL: z.string(),
+  ADMIN_PASSWORD: z.string(),
+  ADMIN_PHONE_NUMBER: z.string(),
 })
 
 const configServer = configSchema.safeParse(process.env)
