@@ -11,6 +11,7 @@ import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
 import envConfig from 'src/shared/config'
+import { TypeOfVerificationCode } from 'src/shared/constants/auth.constant'
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,28 @@ export class AuthService {
   ) {}
   async register(body: RegisterBodyType) {
     try {
+      const verificationCode = await this.authRepository.findUniqueVerificationCode({
+        email: body.email,
+        type: TypeOfVerificationCode.REGISTER,
+        code: body.code,
+      })
+      if (!verificationCode) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'OTP is not valid',
+            path: 'code',
+          },
+        ])
+      }
+      if (verificationCode.expiresAt < new Date()) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'OTP is expired',
+            path: 'code',
+          },
+        ])
+      }
+
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
       return await this.authRepository.createUser({
@@ -35,7 +58,7 @@ export class AuthService {
       })
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
-        throw new UnprocessableEntityException('Email đã tồn tại')
+        throw new UnprocessableEntityException('Email is already registered')
       }
       throw error
     }
@@ -46,7 +69,7 @@ export class AuthService {
       email: body.email,
     })
     if (user) {
-      throw new UnprocessableEntityException([{ path: 'email', message: 'Email đã tồn tại' }])
+      throw new UnprocessableEntityException([{ path: 'email', message: 'Email is already registered' }])
     }
 
     const code = generateOTP()

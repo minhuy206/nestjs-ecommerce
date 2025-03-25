@@ -10,5 +10,10 @@ export function isNotFoundPrismaError(error: any): error is Prisma.PrismaClientK
 }
 
 export const generateOTP = () => {
-  return String(randomInt(100000, 1000000))
+  let code = String(randomInt(0, 1000000))
+  const codeLength = 6
+  while (code.length < codeLength) {
+    code = '0' + code
+  }
+  return code
 }
