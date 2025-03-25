@@ -1,3 +1,4 @@
+import { EmailService } from './services/email.service'
 import { Global, Module } from '@nestjs/common'
 import { PrismaService } from './services/prisma.service'
 import { HashingService } from './services/hashing.service'
@@ -9,7 +10,7 @@ import { AuthenticationGuard } from './guards/authentication.guard'
 import { APP_GUARD } from '@nestjs/core'
 import { SharedUserRepository } from './repositories/shared-user.repo'
 
-const sharedServices = [PrismaService, HashingService, TokenService, SharedUserRepository]
+const sharedServices = [PrismaService, HashingService, TokenService, EmailService, SharedUserRepository]
 
 @Global()
 @Module({
