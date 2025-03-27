@@ -1,18 +1,18 @@
 import { AuthRepository } from './auth.repo'
 import { Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
 import { RolesService } from 'src/routes/auth/roles.service'
-import { v4 as uuidv4 } from 'uuid'
 import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
-import { RegisterBodyType, SendOTPBodyType } from './auth.model'
+import { LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
 import envConfig from 'src/shared/config'
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constant'
 import { EmailService } from 'src/shared/services/email.service'
+import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
 
 @Injectable()
 export class AuthService {
@@ -25,6 +25,7 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly sharedUserRepository: SharedUserRepository,
   ) {}
+
   async register(body: RegisterBodyType) {
     try {
       const verificationCode = await this.authRepository.findUniqueVerificationCode({
@@ -94,15 +95,18 @@ export class AuthService {
     return verificationCode
   }
 
-  async login(body: any) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        email: body.email,
-      },
+  async login(body: LoginBodyType & { userAgent: string; ip: string }) {
+    const user = await this.authRepository.findUniqueUserIncludeRole({
+      email: body.email,
     })
 
     if (!user) {
-      throw new UnauthorizedException('Account is not exist')
+      throw new UnprocessableEntityException([
+        {
+          path: 'email',
+          message: 'Email is not exist',
+        },
+      ])
     }
 
     const isPasswordMatch = await this.hashingService.compare(body.password, user.password)
@@ -110,26 +114,40 @@ export class AuthService {
       throw new UnprocessableEntityException([
         {
           field: 'password',
-          error: 'Password is incorrect',
+          message: 'Password is incorrect',
         },
       ])
     }
-    const tokens = await this.generateTokens({ userId: user.id, uuid: uuidv4() })
+
+    const device = await this.authRepository.createDevice({
+      userId: user.id,
+      userAgent: body.userAgent,
+      ip: body.ip,
+    })
+
+    const tokens = await this.generateTokens({
+      userId: user.id,
+      roleId: user.roleId,
+      roleName: user.role.name,
+      deviceId: device.id,
+    })
+
     return tokens
   }
 
-  async generateTokens(payload: { userId: number; uuid: string }) {
+  async generateTokens({ userId, deviceId, roleId, roleName }: AccessTokenPayloadCreate) {
     const [accessToken, refreshToken] = await Promise.all([
-      this.tokenService.signAccessToken(payload),
-      this.tokenService.signRefreshToken(payload),
+      this.tokenService.signAccessToken({ userId, roleId, roleName, deviceId }),
+      this.tokenService.signRefreshToken({ userId }),
     ])
+
     const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
-    await this.prismaService.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: payload.userId,
-        expiresAt: new Date(decodedRefreshToken.exp * 1000),
-      },
+
+    await this.authRepository.createRefreshToken({
+      token: refreshToken,
+      userId,
+      expiresAt: new Date(decodedRefreshToken.exp * 1000),
+      deviceId,
     })
     return { accessToken, refreshToken }
   }
@@ -151,7 +169,7 @@ export class AuthService {
         },
       })
       // 4. Tạo mới accessToken và refreshToken
-      return await this.generateTokens({ userId, uuid: uuidv4() })
+      return await this.generateTokens({ userId, deviceId: 0, roleId: 0, roleName: '' })
     } catch (error) {
       // Trường hợp đã refresh token rồi, hãy thông báo cho user biết
       // refresh token của họ đã bị đánh cắp
