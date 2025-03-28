@@ -76,7 +76,7 @@ export class AuthService {
     }
 
     const code = generateOTP()
-    const verificationCode = this.authRepository.createVerificationCode({
+    await this.authRepository.createVerificationCode({
       email: body.email,
       code,
       type: body.type,
@@ -92,7 +92,7 @@ export class AuthService {
       throw new UnprocessableEntityException([{ message: 'Failed to send OTP', path: 'code' }])
     }
 
-    return verificationCode
+    return { message: 'OTP has been sent to your email' }
   }
 
   async login(body: LoginBodyType & { userAgent: string; ip: string }) {
