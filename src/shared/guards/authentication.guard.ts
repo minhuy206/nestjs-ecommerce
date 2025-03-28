@@ -25,7 +25,7 @@ export class AuthenticationGuard implements CanActivate {
     const authTypeValue = this.reflector.getAllAndOverride<AuthTypeDecoratorPayload>(AUTH_TYPE_KEY, [
       context.getHandler(),
       context.getClass(),
-    ]) ?? { authTypes: [AUTH_TYPES.None], options: { condition: CONDITION_GUARD.And } }
+    ]) ?? { authTypes: [AUTH_TYPES.Bearer], options: { condition: CONDITION_GUARD.And } }
 
     const guards = authTypeValue.authTypes.map((authType) => this.authTypeGuardMap[authType])
 
