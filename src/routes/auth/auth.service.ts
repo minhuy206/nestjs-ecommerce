@@ -3,7 +3,6 @@ import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityEx
 import { RolesService } from 'src/routes/auth/roles.service'
 import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing.service'
-import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
 import { LoginBodyType, RegisterBodyType, SendOTPBodyType, RefreshTokenBodyType } from './auth.model'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
@@ -21,7 +20,6 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly rolesService: RolesService,
     private readonly authRepository: AuthRepository,
-    private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly sharedUserRepository: SharedUserRepository,
   ) {}
