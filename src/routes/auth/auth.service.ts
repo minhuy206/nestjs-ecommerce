@@ -50,9 +50,7 @@ export class AuthService {
     type: TypeOfVerificationCodeType
   }) {
     const verificationCode = await this.authRepository.findUniqueVerificationCode({
-      email,
-      type,
-      code,
+      email_code_type: { email, type, code },
     })
 
     if (!verificationCode) {
@@ -68,8 +66,10 @@ export class AuthService {
   async register(body: RegisterBodyType) {
     try {
       await this.validateVerificationCode({ email: body.email, code: body.code, type: TypeOfVerificationCode.REGISTER })
+
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
+
       const [user] = await Promise.all([
         this.authRepository.createUser({
           email: body.email,
@@ -79,11 +79,14 @@ export class AuthService {
           roleId: clientRoleId,
         }),
         this.authRepository.deleteVerificationCode({
-          email: body.email,
-          type: TypeOfVerificationCode.REGISTER,
-          code: body.code,
+          email_code_type: {
+            email: body.email,
+            type: TypeOfVerificationCode.REGISTER,
+            code: body.code,
+          },
         }),
       ])
+
       return user
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
@@ -252,9 +255,7 @@ export class AuthService {
     await Promise.all([
       this.authRepository.updateUser({ id: user.id }, { password: hashedPassword }),
       this.authRepository.deleteVerificationCode({
-        email,
-        type: TypeOfVerificationCode.FORGOT_PASSWORD,
-        code,
+        email_code_type: { email, type: TypeOfVerificationCode.FORGOT_PASSWORD, code },
       }),
     ])
 
