@@ -4,12 +4,18 @@ import { RolesService } from 'src/routes/auth/roles.service'
 import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { TokenService } from 'src/shared/services/token.service'
-import { LoginBodyType, RegisterBodyType, SendOTPBodyType, RefreshTokenBodyType } from './auth.model'
+import {
+  LoginBodyType,
+  RegisterBodyType,
+  SendOTPBodyType,
+  RefreshTokenBodyType,
+  ForgotPasswordBodyType,
+} from './auth.model'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
 import envConfig from 'src/shared/config'
-import { TypeOfVerificationCode } from 'src/shared/constants/auth.constant'
+import { TypeOfVerificationCode, TypeOfVerificationCodeType } from 'src/shared/constants/auth.constant'
 import { EmailService } from 'src/shared/services/email.service'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
 import {
@@ -34,29 +40,51 @@ export class AuthService {
     private readonly sharedUserRepository: SharedUserRepository,
   ) {}
 
+  async validateVerificationCode({
+    email,
+    code,
+    type,
+  }: {
+    email: string
+    code: string
+    type: TypeOfVerificationCodeType
+  }) {
+    const verificationCode = await this.authRepository.findUniqueVerificationCode({
+      email,
+      type,
+      code,
+    })
+
+    if (!verificationCode) {
+      throw InvalidOTPException
+    }
+    if (verificationCode.expiresAt < new Date()) {
+      throw OTPExpiredException
+    }
+
+    return verificationCode
+  }
+
   async register(body: RegisterBodyType) {
     try {
-      const verificationCode = await this.authRepository.findUniqueVerificationCode({
-        email: body.email,
-        type: TypeOfVerificationCode.REGISTER,
-        code: body.code,
-      })
-      if (!verificationCode) {
-        throw InvalidOTPException
-      }
-      if (verificationCode.expiresAt < new Date()) {
-        throw OTPExpiredException
-      }
-
+      await this.validateVerificationCode({ email: body.email, code: body.code, type: TypeOfVerificationCode.REGISTER })
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
-      return await this.authRepository.createUser({
-        email: body.email,
-        name: body.name,
-        phoneNumber: body.phoneNumber,
-        password: hashedPassword,
-        roleId: clientRoleId,
-      })
+      const [user] = await Promise.all([
+        this.authRepository.createUser({
+          email: body.email,
+          name: body.name,
+          phoneNumber: body.phoneNumber,
+          password: hashedPassword,
+          roleId: clientRoleId,
+        }),
+        this.authRepository.deleteVerificationCode({
+          email: body.email,
+          type: TypeOfVerificationCode.REGISTER,
+          code: body.code,
+        }),
+      ])
+      return user
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
         throw EmailAlreadyExistsException
@@ -65,24 +93,28 @@ export class AuthService {
     }
   }
 
-  async sendOTP(body: SendOTPBodyType) {
+  async sendOTP({ email, type }: SendOTPBodyType) {
     const user = await this.sharedUserRepository.findUnique({
-      email: body.email,
+      email,
     })
-    if (user) {
+
+    if (type === TypeOfVerificationCode.FORGOT_PASSWORD && !user) {
+      throw EmailNotFoundException
+    }
+    if (type === TypeOfVerificationCode.REGISTER && user) {
       throw EmailAlreadyExistsException
     }
 
     const code = generateOTP()
     await this.authRepository.createVerificationCode({
-      email: body.email,
+      email,
       code,
-      type: body.type,
+      type,
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)),
     })
 
     const { error } = await this.emailService.sendOTP({
-      email: body.email,
+      email,
       code,
     })
 
@@ -203,5 +235,29 @@ export class AuthService {
       }
       throw UnauthorizedAccessException
     }
+  }
+
+  async forgotPassword({ email, newPassword, code }: ForgotPasswordBodyType) {
+    const user = await this.sharedUserRepository.findUnique({
+      email,
+    })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+
+    await this.validateVerificationCode({ email, code, type: TypeOfVerificationCode.FORGOT_PASSWORD })
+
+    const hashedPassword = await this.hashingService.hash(newPassword)
+
+    await Promise.all([
+      this.authRepository.updateUser({ id: user.id }, { password: hashedPassword }),
+      this.authRepository.deleteVerificationCode({
+        email,
+        type: TypeOfVerificationCode.FORGOT_PASSWORD,
+        code,
+      }),
+    ])
+
+    return { message: 'Password has been changed successfully' }
   }
 }
