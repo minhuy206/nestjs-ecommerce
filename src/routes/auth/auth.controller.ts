@@ -1,6 +1,7 @@
 import { GoogleService } from './google.service'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
+  Disable2FABodyDTO,
   ForgotPasswordBodyDTO,
   GetAuthorizationResponseDTO,
   LoginBodyDTO,
@@ -99,5 +100,11 @@ export class AuthController {
   @ZodSerializerDto(TwoFASetupResponseDTO)
   setup2FA(@Body() _: EmptyBodyDTO, @ActiveUser('userId') userId: number) {
     return this.authService.setup2FA(userId)
+  }
+
+  @Post('2fa/disable')
+  @ZodSerializerDto(MessageResponseDTO)
+  disable2FA(@Body() body: Disable2FABodyDTO, @ActiveUser('userId') userId: number) {
+    return this.authService.disable2FA({ ...body, userId })
   }
 }

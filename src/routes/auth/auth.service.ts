@@ -11,6 +11,7 @@ import {
   SendOTPBodyType,
   RefreshTokenBodyType,
   ForgotPasswordBodyType,
+  Disable2FABodyType,
 } from './auth.model'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { addMilliseconds } from 'date-fns'
@@ -31,6 +32,7 @@ import {
   RefreshTokenAlreadyUsedException,
   UnauthorizedAccessException,
   InvalidTOTPException,
+  NotEnabled2FAException,
 } from './error.model'
 
 @Injectable()
@@ -168,6 +170,10 @@ export class AuthService {
         email: user.email,
         code: body.code,
         type: TypeOfVerificationCode.LOGIN,
+      })
+
+      await this.authRepository.deleteVerificationCode({
+        email_code_type: { email: user.email, type: TypeOfVerificationCode.DISABLE_2FA, code: body.code },
       })
     }
 
@@ -314,5 +320,46 @@ export class AuthService {
     )
 
     return { secret, uri }
+  }
+
+  async disable2FA({ userId, code, totpCode }: Disable2FABodyType & { userId: number }) {
+    const user = await this.sharedUserRepository.findUnique({
+      id: userId,
+    })
+
+    if (!user) {
+      throw EmailNotFoundException
+    }
+
+    if (!user.totpSecret) {
+      throw NotEnabled2FAException
+    }
+
+    if (totpCode) {
+      const isValid = this.twoFAService.verifyTOTP({
+        email: user.email,
+        token: totpCode,
+        secret: user.totpSecret,
+      })
+      if (!isValid) {
+        throw InvalidTOTPException
+      }
+      await this.authRepository.updateUser({ id: userId }, { totpSecret: null })
+    } else if (code) {
+      await this.validateVerificationCode({
+        email: user.email,
+        code,
+        type: TypeOfVerificationCode.DISABLE_2FA,
+      })
+
+      await Promise.all([
+        this.authRepository.updateUser({ id: userId }, { totpSecret: null }),
+        this.authRepository.deleteVerificationCode({
+          email_code_type: { email: user.email, type: TypeOfVerificationCode.DISABLE_2FA, code },
+        }),
+      ])
+    }
+
+    return { message: '2FA has been disabled successfully' }
   }
 }
