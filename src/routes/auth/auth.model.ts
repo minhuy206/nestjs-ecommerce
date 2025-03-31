@@ -145,7 +145,7 @@ export const Disable2FABodySchema = z
   .strict()
   .superRefine(({ totpCode, code }, ctx) => {
     const message = 'Either totpCode or code must be provided'
-    if ((totpCode === undefined) !== (code === undefined)) {
+    if ((totpCode === undefined) === (code === undefined)) {
       ctx.addIssue({
         code: 'custom',
         path: ['totpCode'],
