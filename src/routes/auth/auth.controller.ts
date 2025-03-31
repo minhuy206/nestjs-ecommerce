@@ -11,6 +11,7 @@ import {
   RegisterBodyDto,
   RegisterResponseDto,
   SendOTPBodyDTO,
+  TwoFASetupResponseDTO,
 } from './auth.dto'
 import { AuthService } from './auth.service'
 import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Post, Query, Res } from '@nestjs/common'
@@ -19,6 +20,8 @@ import { MessageResponseDTO } from 'src/shared/dtos/response.dto'
 import { IsPublic } from 'src/shared/decorators/Auth.decorator'
 import { Response } from 'express'
 import envConfig from 'src/shared/config'
+import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 
 @Controller('auth')
 export class AuthController {
@@ -89,5 +92,12 @@ export class AuthController {
   @ZodSerializerDto(MessageResponseDTO)
   forgotPassword(@Body() body: ForgotPasswordBodyDTO) {
     return this.authService.forgotPassword(body)
+  }
+
+  // Why don't use GET method instead of POST if body is an empty object. Because POST means create something and POST is more secure than GET because GET could be called through URL but POST is not.
+  @Post('2fa/setup')
+  @ZodSerializerDto(TwoFASetupResponseDTO)
+  setup2FA(@Body() _: EmptyBodyDTO, @ActiveUser('userId') userId: number) {
+    return this.authService.setup2FA(userId)
   }
 }

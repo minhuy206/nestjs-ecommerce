@@ -51,3 +51,29 @@ export const UnauthorizedAccessException = new UnauthorizedException('Error.Unau
 
 // Google auth related errors
 export const GoogleUserInfoError = new Error('Error.FailedToGetGoogleUserInfo')
+
+// 2FA related errors
+export const AlreadyEnabled2FAException = new UnprocessableEntityException([
+  {
+    message: 'Error.AlreadyEnabled2FA',
+    path: 'totpCode',
+  },
+])
+
+export const NotEnabled2FAException = new UnprocessableEntityException([
+  {
+    message: 'Error.NotEnabled2FA',
+    path: 'totpCode',
+  },
+])
+
+export const InvalidOTPAndCodeException = new UnprocessableEntityException([
+  {
+    message: 'Error.InvalidOTPAndCode',
+    path: 'totpCode',
+  },
+  {
+    message: 'Error.InvalidOTPAndCode',
+    path: 'code',
+  },
+])
