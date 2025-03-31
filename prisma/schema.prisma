@@ -84,8 +84,8 @@ model User {
   createdUsers User[] @relation("CreatorUsers")
 
   updatedById  Int?
-  updatedBy    User?  @relation("UpdatorUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  updatedUsers User[] @relation("UpdatorUsers")
+  updatedBy    User?  @relation("UpdaterUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedUsers User[] @relation("UpdaterUsers")
 
   deletedAt DateTime?
   createdAt DateTime  @default(now())
