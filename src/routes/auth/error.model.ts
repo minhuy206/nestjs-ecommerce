@@ -67,13 +67,20 @@ export const NotEnabled2FAException = new UnprocessableEntityException([
   },
 ])
 
-export const InvalidOTPAndCodeException = new UnprocessableEntityException([
+export const InvalidTOTPAndCodeException = new UnprocessableEntityException([
   {
-    message: 'Error.InvalidOTPAndCode',
+    message: 'Error.InvalidTOTPAndCode',
     path: 'totpCode',
   },
   {
-    message: 'Error.InvalidOTPAndCode',
+    message: 'Error.InvalidTOTPAndCode',
     path: 'code',
+  },
+])
+
+export const InvalidTOTPException = new UnprocessableEntityException([
+  {
+    message: 'Error.InvalidTOTP',
+    path: 'totpCode',
   },
 ])
