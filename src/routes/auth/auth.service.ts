@@ -1,3 +1,4 @@
+import { TwoFAService } from './../../shared/services/2fa.service'
 import { AuthRepository } from './auth.repo'
 import { HttpException, Injectable } from '@nestjs/common'
 import { RolesService } from 'src/routes/auth/roles.service'
@@ -19,6 +20,7 @@ import { TypeOfVerificationCode, TypeOfVerificationCodeType } from 'src/shared/c
 import { EmailService } from 'src/shared/services/email.service'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
 import {
+  AlreadyEnabled2FAException,
   EmailAlreadyExistsException,
   EmailNotFoundException,
   FailedToSendOTPException,
@@ -38,6 +40,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly emailService: EmailService,
     private readonly sharedUserRepository: SharedUserRepository,
+    private readonly twoFAService: TwoFAService,
   ) {}
 
   async validateVerificationCode({
@@ -260,5 +263,30 @@ export class AuthService {
     ])
 
     return { message: 'Password has been changed successfully' }
+  }
+
+  async setup2FA(userId: number) {
+    const user = await this.sharedUserRepository.findUnique({
+      id: userId,
+    })
+
+    if (!user) {
+      throw EmailNotFoundException
+    }
+
+    if (user.totpSecret) {
+      throw AlreadyEnabled2FAException
+    }
+
+    const { secret, uri } = this.twoFAService.generateTOTPSecret(user.email)
+
+    await this.authRepository.updateUser(
+      {
+        id: userId,
+      },
+      { totpSecret: secret },
+    )
+
+    return { secret, uri }
   }
 }
