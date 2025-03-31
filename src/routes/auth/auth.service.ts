@@ -21,20 +21,19 @@ import { TypeOfVerificationCode, TypeOfVerificationCodeType } from 'src/shared/c
 import { EmailService } from 'src/shared/services/email.service'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
 import {
+  InvalidOTPException,
   AlreadyEnabled2FAException,
   EmailAlreadyExistsException,
   EmailNotFoundException,
   FailedToSendOTPException,
   InvalidTOTPAndCodeException,
-  InvalidOTPException,
   InvalidPasswordException,
   OTPExpiredException,
   RefreshTokenAlreadyUsedException,
   UnauthorizedAccessException,
   InvalidTOTPException,
   NotEnabled2FAException,
-} from './error.model'
-
+} from './auth.error'
 @Injectable()
 export class AuthService {
   constructor(
