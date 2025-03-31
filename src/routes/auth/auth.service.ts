@@ -24,11 +24,13 @@ import {
   EmailAlreadyExistsException,
   EmailNotFoundException,
   FailedToSendOTPException,
+  InvalidTOTPAndCodeException,
   InvalidOTPException,
   InvalidPasswordException,
   OTPExpiredException,
   RefreshTokenAlreadyUsedException,
   UnauthorizedAccessException,
+  InvalidTOTPException,
 } from './error.model'
 
 @Injectable()
@@ -143,6 +145,30 @@ export class AuthService {
     const isPasswordMatch = await this.hashingService.compare(body.password, user.password)
     if (!isPasswordMatch) {
       throw InvalidPasswordException
+    }
+
+    // 2FA check
+    if (user.totpSecret) {
+      if (!body.totpCode && !body.code) {
+        throw InvalidTOTPAndCodeException
+      }
+
+      if (body.totpCode) {
+        const isValid = this.twoFAService.verifyTOTP({
+          email: user.email,
+          secret: user.totpSecret,
+          token: body.totpCode,
+        })
+        if (!isValid) {
+          throw InvalidTOTPException
+        }
+      }
+    } else if (body.code) {
+      await this.validateVerificationCode({
+        email: user.email,
+        code: body.code,
+        type: TypeOfVerificationCode.LOGIN,
+      })
     }
 
     const device = await this.authRepository.createDevice({
