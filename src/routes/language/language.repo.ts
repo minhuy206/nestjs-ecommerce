@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { CreateLanguageBodyType, LanguageType, UpdateLanguageBodyType } from './language.model'
+import { CreateLanguageBodyType, LanguageType, UpdateLanguageBodyType } from './language.entity'
 
 @Injectable()
 export class LanguageRepository {

@@ -12,11 +12,11 @@ import {
   RegisterResponseSchema,
   SendOTPBodySchema,
   TwoFASetupResponseSchema,
-} from './auth.model'
+} from './auth.entity'
 
-export class RegisterBodyDto extends createZodDto(RegisterBodySchema) {}
+export class RegisterBodyDTO extends createZodDto(RegisterBodySchema) {}
 
-export class RegisterResponseDto extends createZodDto(RegisterResponseSchema) {}
+export class RegisterResponseDTO extends createZodDto(RegisterResponseSchema) {}
 
 export class SendOTPBodyDTO extends createZodDto(SendOTPBodySchema) {}
 

@@ -12,7 +12,7 @@ import {
   RefreshTokenBodyType,
   ForgotPasswordBodyType,
   Disable2FABodyType,
-} from './auth.model'
+} from './auth.entity'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
