@@ -1,4 +1,4 @@
 import { createZodDto } from 'nestjs-zod'
-import { MessageResponseSchema } from '../models/response.model'
+import { MessageResponseSchema } from '../entities/response.entites'
 
 export class MessageResponseDTO extends createZodDto(MessageResponseSchema) {}

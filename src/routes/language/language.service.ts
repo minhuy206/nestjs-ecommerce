@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CreateLanguageBodyType, UpdateLanguageBodyType } from './language.model'
+import { CreateLanguageBodyType, UpdateLanguageBodyType } from './language.entity'
 import { LanguageRepository } from './language.repo'
 import { LanguageAlreadyExistsException } from './language.error'
 import { NotFoundRecordException } from 'src/shared/error'
