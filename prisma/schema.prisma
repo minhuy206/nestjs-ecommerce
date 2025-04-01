@@ -119,13 +119,13 @@ model UserTranslation {
 model VerificationCode {
   id    Int                  @id @default(autoincrement())
   email String               @db.VarChar(500)
-  code  String               @db.VarChar(50)
+  otp  String               @db.VarChar(50)
   type  VerificationCodeType
 
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  @@unique([email, code, type])
+  @@unique([email, otp, type])
   @@index([expiresAt])
 }
 

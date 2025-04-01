@@ -12,13 +12,13 @@ export class EmailService {
     this.resend = new Resend(envConfig.RESEND_API_KEY)
   }
 
-  sendOTP(payload: { email: string; code: string }) {
+  sendOTP(payload: { email: string; otp: string }) {
     
     return this.resend.emails.send({
       from: `${envConfig.ADMIN_EMAIL} <${envConfig.ADMIN_EMAIL}>`,
       to: [payload.email],
       subject: 'Please verify your email before using our services!',
-      react: <OTPEmail code={payload.code}  />,
+      react: <OTPEmail otp={payload.otp}  />,
     })
   }
 }

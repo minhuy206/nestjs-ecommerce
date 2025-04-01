@@ -48,15 +48,15 @@ export class AuthService {
 
   async validateVerificationCode({
     email,
-    code,
+    otp,
     type,
   }: {
     email: string
-    code: string
+    otp: string
     type: TypeOfVerificationCodeType
   }) {
     const verificationCode = await this.authRepository.findUniqueVerificationCode({
-      email_code_type: { email, type, code },
+      email_otp_type: { email, type, otp },
     })
 
     if (!verificationCode) {
@@ -71,7 +71,7 @@ export class AuthService {
 
   async register(body: RegisterBodyType) {
     try {
-      await this.validateVerificationCode({ email: body.email, code: body.code, type: TypeOfVerificationCode.REGISTER })
+      await this.validateVerificationCode({ email: body.email, otp: body.otp, type: TypeOfVerificationCode.REGISTER })
 
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
@@ -85,10 +85,10 @@ export class AuthService {
           roleId: clientRoleId,
         }),
         this.authRepository.deleteVerificationCode({
-          email_code_type: {
+          email_otp_type: {
             email: body.email,
             type: TypeOfVerificationCode.REGISTER,
-            code: body.code,
+            otp: body.otp,
           },
         }),
       ])
@@ -114,17 +114,17 @@ export class AuthService {
       throw EmailAlreadyExistsException
     }
 
-    const code = generateOTP()
+    const otp = generateOTP()
     await this.authRepository.createVerificationCode({
       email,
-      code,
+      otp,
       type,
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)),
     })
 
     const { error } = await this.emailService.sendOTP({
       email,
-      code,
+      otp,
     })
 
     if (error) {
@@ -150,7 +150,7 @@ export class AuthService {
 
     // 2FA check
     if (user.totpSecret) {
-      if (!body.totpCode && !body.code) {
+      if (!body.totpCode && !body.otp) {
         throw InvalidTOTPAndCodeException
       }
 
@@ -164,15 +164,15 @@ export class AuthService {
           throw InvalidTOTPException
         }
       }
-    } else if (body.code) {
+    } else if (body.otp) {
       await this.validateVerificationCode({
         email: user.email,
-        code: body.code,
+        otp: body.otp,
         type: TypeOfVerificationCode.LOGIN,
       })
 
       await this.authRepository.deleteVerificationCode({
-        email_code_type: { email: user.email, type: TypeOfVerificationCode.DISABLE_2FA, code: body.code },
+        email_otp_type: { email: user.email, type: TypeOfVerificationCode.DISABLE_2FA, otp: body.otp },
       })
     }
 
@@ -274,7 +274,7 @@ export class AuthService {
     }
   }
 
-  async forgotPassword({ email, newPassword, code }: ForgotPasswordBodyType) {
+  async forgotPassword({ email, newPassword, otp }: ForgotPasswordBodyType) {
     const user = await this.sharedUserRepository.findUnique({
       email,
     })
@@ -282,14 +282,14 @@ export class AuthService {
       throw EmailNotFoundException
     }
 
-    await this.validateVerificationCode({ email, code, type: TypeOfVerificationCode.FORGOT_PASSWORD })
+    await this.validateVerificationCode({ email, otp, type: TypeOfVerificationCode.FORGOT_PASSWORD })
 
     const hashedPassword = await this.hashingService.hash(newPassword)
 
     await Promise.all([
       this.authRepository.updateUser({ id: user.id }, { password: hashedPassword }),
       this.authRepository.deleteVerificationCode({
-        email_code_type: { email, type: TypeOfVerificationCode.FORGOT_PASSWORD, code },
+        email_otp_type: { email, type: TypeOfVerificationCode.FORGOT_PASSWORD, otp },
       }),
     ])
 
@@ -321,7 +321,7 @@ export class AuthService {
     return { secret, uri }
   }
 
-  async disable2FA({ userId, code, totpCode }: Disable2FABodyType & { userId: number }) {
+  async disable2FA({ userId, otp, totpCode }: Disable2FABodyType & { userId: number }) {
     const user = await this.sharedUserRepository.findUnique({
       id: userId,
     })
@@ -344,17 +344,17 @@ export class AuthService {
         throw InvalidTOTPException
       }
       await this.authRepository.updateUser({ id: userId }, { totpSecret: null })
-    } else if (code) {
+    } else if (otp) {
       await this.validateVerificationCode({
         email: user.email,
-        code,
+        otp,
         type: TypeOfVerificationCode.DISABLE_2FA,
       })
 
       await Promise.all([
         this.authRepository.updateUser({ id: userId }, { totpSecret: null }),
         this.authRepository.deleteVerificationCode({
-          email_code_type: { email: user.email, type: TypeOfVerificationCode.DISABLE_2FA, code },
+          email_otp_type: { email: user.email, type: TypeOfVerificationCode.DISABLE_2FA, otp },
         }),
       ])
     }

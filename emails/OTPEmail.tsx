@@ -13,14 +13,14 @@ import * as React from 'react';
 import envConfig from 'src/shared/config';
 
 interface PlaidVerifyIdentityEmailProps {
-  code: string;
+  otp: string;
 
 }
 
 const logoURL = 'https://icons.veryicon.com/png/o/miscellaneous/gcy_icofont/authentication-29.png'
 
 export const OTPEmail = ({
-  code: otp,
+  otp,
 }: PlaidVerifyIdentityEmailProps) => (
   <Html>
     <Head />
@@ -35,7 +35,7 @@ export const OTPEmail = ({
         />
         <Text style={tertiary}>Verification code</Text>
         <Heading style={secondary}>
-          Enter the following code to finish registering.
+          Enter the following OTP to authorize.
         </Heading>
         <Section style={codeContainer}>
           <Text style={code}>{otp}</Text>

@@ -4,21 +4,21 @@ import { UnauthorizedException, UnprocessableEntityException } from '@nestjs/com
 export const InvalidOTPException = new UnprocessableEntityException([
   {
     message: 'Error.InvalidOTP',
-    path: 'code',
+    path: 'otp',
   },
 ])
 
 export const OTPExpiredException = new UnprocessableEntityException([
   {
     message: 'Error.OTPExpired',
-    path: 'code',
+    path: 'otp',
   },
 ])
 
 export const FailedToSendOTPException = new UnprocessableEntityException([
   {
     message: 'Error.FailedToSendOTP',
-    path: 'code',
+    path: 'otp',
   },
 ])
 
@@ -74,7 +74,7 @@ export const InvalidTOTPAndCodeException = new UnprocessableEntityException([
   },
   {
     message: 'Error.InvalidTOTPAndCode',
-    path: 'code',
+    path: 'otp',
   },
 ])
 

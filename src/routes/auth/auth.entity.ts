@@ -5,12 +5,12 @@ import { z } from 'zod'
 export const RegisterBodySchema = UserSchema.pick({
   email: true,
   name: true,
-  password: true,
   phoneNumber: true,
+  password: true,
 })
   .extend({
     confirmPassword: z.string().min(8).max(100),
-    code: z.string().length(6),
+    otp: z.string().length(6),
   })
   .strict()
   .superRefine(({ confirmPassword, password }, ctx) => {
@@ -30,8 +30,13 @@ export const RegisterResponseSchema = UserSchema.omit({
 export const VerificationCodeSchema = z.object({
   id: z.number(),
   email: z.string().email(),
-  code: z.string().length(6),
-  type: z.nativeEnum(TypeOfVerificationCode),
+  otp: z.string().length(6),
+  type: z.enum([
+    TypeOfVerificationCode.LOGIN,
+    TypeOfVerificationCode.REGISTER,
+    TypeOfVerificationCode.FORGOT_PASSWORD,
+    TypeOfVerificationCode.DISABLE_2FA,
+  ]),
   expiresAt: z.date(),
   createdAt: z.date(),
 })
@@ -48,11 +53,11 @@ export const LoginBodySchema = UserSchema.pick({
   .strict()
   .extend({
     totpCode: z.string().length(6).optional(), // 2FA
-    code: z.string().length(6).optional(), // OTP
+    otp: z.string().length(6).optional(), // OTP
   })
-  .superRefine(({ totpCode, code }, ctx) => {
+  .superRefine(({ totpCode, otp }, ctx) => {
     const message = 'Either totpCode or code must be provided'
-    if (totpCode !== undefined && code !== undefined) {
+    if ((totpCode !== undefined) === (otp !== undefined)) {
       ctx.addIssue({
         code: 'custom',
         path: ['totpCode'],
@@ -60,7 +65,7 @@ export const LoginBodySchema = UserSchema.pick({
       })
       ctx.addIssue({
         code: 'custom',
-        path: ['code'],
+        path: ['otp'],
         message,
       })
     }
@@ -123,7 +128,7 @@ export const GetAuthorizationUrlResponseSchema = z.object({
 export const ForgotPasswordBodySchema = z
   .object({
     email: z.string().email(),
-    code: z.string().length(6),
+    otp: z.string().length(6),
     newPassword: z.string().min(8).max(100),
     confirmPassword: z.string().min(8).max(100),
   })
@@ -140,12 +145,12 @@ export const ForgotPasswordBodySchema = z
 export const Disable2FABodySchema = z
   .object({
     totpCode: z.string().length(6).optional(), // 2FA
-    code: z.string().length(6).optional(), // OTP
+    otp: z.string().length(6).optional(), // OTP
   })
   .strict()
-  .superRefine(({ totpCode, code }, ctx) => {
-    const message = 'Either totpCode or code must be provided'
-    if ((totpCode === undefined) === (code === undefined)) {
+  .superRefine(({ totpCode, otp }, ctx) => {
+    const message = 'Either totpCode or otp must be provided'
+    if ((totpCode === undefined) === (otp === undefined)) {
       ctx.addIssue({
         code: 'custom',
         path: ['totpCode'],
@@ -153,7 +158,7 @@ export const Disable2FABodySchema = z
       })
       ctx.addIssue({
         code: 'custom',
-        path: ['code'],
+        path: ['otp'],
         message,
       })
     }
