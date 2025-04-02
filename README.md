@@ -1,6 +1,6 @@
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+A back-end project for a multilingual ecommerce application built with NestJS. It provides endpoints for user authentication, product management, order processing and more.
 
 ## Clone Project
 
@@ -29,4 +29,4 @@ $ yarn run start:prod
 
 ## NestJS Ecommerce API Documentation
 
-[Ecommerce Documentation](http://localhost:3000/api-docs/) (**Server on running is required to run and could be only run at local**)
+[Ecommerce Documentation](http://localhost:3000/api-docs/)

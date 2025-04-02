@@ -158,7 +158,7 @@ export class AuthController {
           messages: [
             {
               path: 'email',
-              message: 'Error.EmailAlreadyExists',
+              message: 'Error.EmailNotFound',
             },
           ],
           error: 'Unprocessable Entity',

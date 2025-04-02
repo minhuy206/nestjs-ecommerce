@@ -4,7 +4,7 @@ export function configSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('NestJS Ecommerce API Documentation')
     .setDescription(
-      'This is a Ecommerce API. A back-end API for an ecommerce application built with NestJS. It provides endpoints for user authentication, product management, order processing, and more. \n\nSome useful links:\n\n- [NestJS Ecommerce repository](https://github.com/minhuy206/nestjs-ecommerce)',
+      'This back-end project is a RESTful API for a multilingual ecommerce platform built using NestJS and PostgreSQL. It follows a modular and service-oriented architecture, ensuring scalability and maintainability. The API manages user authentication, product inventory, orders, and payments while implementing security best practices.\n\nSome useful links:\n\n- [NestJS Ecommerce repository](https://github.com/minhuy206/nestjs-ecommerce)',
     )
     .setContact('the developer', '', 'contact@minhuy.dev')
     .setExternalDoc('Find out more ablout NestJS', 'https://nestjs.com')
