@@ -266,7 +266,7 @@ export class LanguageController {
     },
   })
   @ZodSerializerDto(MessageResponseDTO)
-  remove(@Param() params: GetLanguageParamsDTO) {
-    return this.languageService.remove(params.languageId)
+  delete(@Param() params: GetLanguageParamsDTO) {
+    return this.languageService.delete(params.languageId)
   }
 }
