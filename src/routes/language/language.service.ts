@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CreateLanguageBodyType, UpdateLanguageBodyType } from './language.entity'
+import { CreateLanguageBodyType, UpdateLanguageBodyType } from './language.model'
 import { LanguageRepository } from './language.repo'
 import { LanguageAlreadyExistsException } from './language.error'
 import { NotFoundRecordException } from 'src/shared/error'
@@ -48,7 +48,7 @@ export class LanguageService {
     }
   }
 
-  async remove(id: string) {
+  async delete(id: string) {
     try {
       await this.languageRepository.delete(id, true)
       return {

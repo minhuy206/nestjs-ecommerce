@@ -5,7 +5,7 @@ import {
   GetLanguagesResponseSchema,
   LanguageSchema,
   UpdateLanguageBodySchema,
-} from './language.entity'
+} from './language.model'
 
 export class CreateLanguageBodyDTO extends createZodDto(CreateLanguageBodySchema) {}
 
