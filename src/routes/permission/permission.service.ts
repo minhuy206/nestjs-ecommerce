@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { PermissionRepository } from './permission.repo'
-import { CreatePermissionBodyType, GetPermissionsQueryType, UpdatePermissionBodyType } from './permission.model'
 import { NotFoundRecordException } from 'src/shared/error'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { PermissionAlreadyExistsException } from './permission.error'
+import { CreatePermissionBodyType, GetPermissionsQueryType, UpdatePermissionBodyType } from './permission.model'
+import { PermissionRepository } from './permission.repo'
 
 @Injectable()
 export class PermissionService {
@@ -34,12 +34,12 @@ export class PermissionService {
 
   async update({ id, data, updatedById }: { id: number; data: UpdatePermissionBodyType; updatedById: number }) {
     try {
-      const Permission = await this.permissionRepository.update({
+      const permission = await this.permissionRepository.update({
         id,
         updatedById,
         data,
       })
-      return Permission
+      return permission
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw NotFoundRecordException

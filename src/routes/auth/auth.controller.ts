@@ -1,5 +1,23 @@
-import { GoogleService } from './google.service'
+import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Post, Query, Res } from '@nestjs/common'
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  ApiUnprocessableEntityResponse,
+} from '@nestjs/swagger'
+import { Response } from 'express'
 import { ZodSerializerDto } from 'nestjs-zod'
+import envConfig from 'src/shared/config'
+import { UserStatus } from 'src/shared/constants/auth.constant'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { IsPublic } from 'src/shared/decorators/auth.decorator'
+import { UserAgent } from 'src/shared/decorators/user-agent.decorator'
+import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
+import { MessageResponseDTO } from 'src/shared/dtos/response.dto'
 import {
   Disable2FABodyDTO,
   ForgotPasswordBodyDTO,
@@ -15,25 +33,7 @@ import {
   TwoFASetupResponseDTO,
 } from './auth.dto'
 import { AuthService } from './auth.service'
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Post, Query, Res } from '@nestjs/common'
-import { UserAgent } from 'src/shared/decorators/user-agent.decorator'
-import { MessageResponseDTO } from 'src/shared/dtos/response.dto'
-import { IsPublic } from 'src/shared/decorators/Auth.decorator'
-import { Response } from 'express'
-import envConfig from 'src/shared/config'
-import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiQuery,
-  ApiTags,
-  ApiUnauthorizedResponse,
-  ApiUnprocessableEntityResponse,
-} from '@nestjs/swagger'
-import { UserStatus } from 'src/shared/constants/auth.constant'
+import { GoogleService } from './google.service'
 
 @Controller('auth')
 @ApiTags('Auth')
