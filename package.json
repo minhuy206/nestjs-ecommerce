@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "init-seed-data": "ts-node initialScript",
+    "create-permission": "ts-node initialScript/create-permission.ts",
+    "create-role": "ts-node initialScript/create-role.ts",
     "email:dev": "email dev",
     "email:build": "email build",
     "email:export": "email export",
