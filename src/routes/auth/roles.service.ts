@@ -5,8 +5,10 @@ import { RoleType } from './auth.model'
 
 @Injectable()
 export class RolesService {
-  private clientRoleId: number | null = null
-  constructor(private readonly prismaService: PrismaService) {}
+  private clientRoleId: number | null
+  constructor(private readonly prismaService: PrismaService) {
+    this.clientRoleId = null
+  }
 
   async getClientRoleId() {
     if (this.clientRoleId) {

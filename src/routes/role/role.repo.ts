@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnprocessableEntityException } from '@nestjs/common'
 import {
   CreateRoleBodyType,
   GetRolesQueryType,
@@ -46,7 +46,11 @@ export class RoleRepository {
         deletedAt: null,
       },
       include: {
-        permissions: true,
+        permissions: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     })
   }
@@ -60,7 +64,29 @@ export class RoleRepository {
     })
   }
 
-  update({ id, updatedById, data }: { id: number; updatedById: number; data: UpdateRoleBodyType }): Promise<RoleType> {
+  async update({
+    id,
+    updatedById,
+    data,
+  }: {
+    id: number
+    updatedById: number
+    data: UpdateRoleBodyType
+  }): Promise<RoleType> {
+    if (data.permissionIds.length > 0) {
+      const permissions = await this.prismaService.permission.findMany({
+        where: {
+          id: { in: data.permissionIds },
+        },
+      })
+
+      const deletedPermissions = permissions.filter((permissions) => permissions.deletedAt)
+
+      if (deletedPermissions.length > 0) {
+        const deletedIds = deletedPermissions.map((permission) => permission.id).join(', ')
+        throw new UnprocessableEntityException(`Error.PermissionNotFound: ${deletedIds}`)
+      }
+    }
     return this.prismaService.role.update({
       where: {
         id,
@@ -76,7 +102,11 @@ export class RoleRepository {
         updatedById,
       },
       include: {
-        permissions: true,
+        permissions: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     })
   }

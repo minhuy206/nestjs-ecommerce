@@ -8,3 +8,5 @@ export const RoleAlreadyExistsException = new UnprocessableEntityException([
 ])
 
 export const RoleNotFoundException = new NotFoundException('Error.RoleNotFound')
+
+export const ProhibitedActionOnBaseRoleException = new UnprocessableEntityException('Error.ProhibitedActionOnBaseRole')
