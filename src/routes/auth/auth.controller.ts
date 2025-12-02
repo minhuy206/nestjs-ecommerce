@@ -14,7 +14,6 @@ import { ZodSerializerDto } from 'nestjs-zod'
 import envConfig from 'src/shared/config'
 import { UserStatus } from 'src/shared/constants/auth.constant'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { UserAgent } from 'src/shared/decorators/user-agent.decorator'
 import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
 import { MessageResponseDTO } from 'src/shared/dtos/response.dto'
@@ -34,6 +33,7 @@ import {
 } from './auth.dto'
 import { AuthService } from './auth.service'
 import { GoogleService } from './google.service'
+import { IsPublic } from 'src/shared/decorators/auth.decorator'
 
 @Controller('auth')
 @ApiTags('Auth')
